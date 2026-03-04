@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Админка - Пользователи</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #ffd7e5, #ffeef4);
+        color: #3e1e2c;
+    }
+
+    .wrap {
+        max-width: 980px;
+        margin: 0 auto;
+        padding: 16px;
+    }
+
+    .panel {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 24px rgba(112, 36, 74, 0.12);
+        padding: 14px;
+        margin-bottom: 12px;
+    }
+
+    h1 {
+        margin: 0 0 12px;
+        color: #b02863;
+    }
+
+    .controls {
+        display: grid;
+        grid-template-columns: 1fr 180px 140px;
+        gap: 10px;
+    }
+
+    input, select, button {
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid #ecc8d9;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    input, select {
+        background: #fff7fb;
+    }
+
+    button {
+        background: #d43e7f;
+        color: #fff;
+        border: none;
+        cursor: pointer;
+    }
+
+    button:hover {
+        opacity: 0.92;
+    }
+
+    .meta {
+        margin-top: 10px;
+        font-size: 13px;
+        color: #7d4b62;
+    }
+
+    .error {
+        margin-top: 10px;
+        color: #b22459;
+        font-size: 13px;
+        display: none;
+    }
+
+    .table-wrap {
+        overflow: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        min-width: 720px;
+    }
+
+    th, td {
+        text-align: left;
+        padding: 10px 8px;
+        border-bottom: 1px solid #f0d9e4;
+        vertical-align: top;
+    }
+
+    th {
+        color: #8f3b60;
+        font-weight: 700;
+        background: #fff9fc;
+        position: sticky;
+        top: 0;
+    }
+
+    .empty {
+        color: #8f5e73;
+        text-align: center;
+        padding: 20px 0;
+    }
+
+    @media (max-width: 720px) {
+        .controls {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="panel">
+        <h1>Пользователи</h1>
+        <div class="controls">
+            <input id="searchInput" type="text" placeholder="Поиск: имя, телефон, telegram_id">
+            <select id="universityFilter">
+                <option value="">Все университеты</option>
+                <option value="БГУ">БГУ</option>
+                <option value="ИГУ">ИГУ</option>
+            </select>
+            <button id="refreshBtn" type="button">Применить</button>
+        </div>
+        <div class="meta" id="metaText">Загрузка...</div>
+        <div class="error" id="errorText"></div>
+    </div>
+
+    <div class="panel table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Имя</th>
+                    <th>Телефон</th>
+                    <th>Университет</th>
+                    <th>Telegram ID</th>
+                    <th>Дата регистрации</th>
+                </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+const initData = tg?.initData || "";
+
+if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor("#ffd7e5");
+    tg.setBackgroundColor("#ffd7e5");
+}
+
+const searchInput = document.getElementById("searchInput");
+const universityFilter = document.getElementById("universityFilter");
+const refreshBtn = document.getElementById("refreshBtn");
+const metaText = document.getElementById("metaText");
+const errorText = document.getElementById("errorText");
+const usersTbody = document.getElementById("usersTbody");
+
+function showError(message) {
+    errorText.textContent = message;
+    errorText.style.display = "block";
+}
+
+function hideError() {
+    errorText.style.display = "none";
+}
+
+function formatDate(isoValue) {
+    if (!isoValue) return "-";
+    const date = new Date(isoValue);
+    if (Number.isNaN(date.getTime())) return isoValue;
+    return date.toLocaleString("ru-RU");
+}
+
+function formatPhoneRu(phoneValue) {
+    const digits = String(phoneValue || "").replace(/\D/g, "");
+    if (!/^7\d{10}$/.test(digits)) {
+        return phoneValue || "-";
+    }
+
+    const p1 = digits.slice(1, 4);
+    const p2 = digits.slice(4, 7);
+    const p3 = digits.slice(7, 9);
+    const p4 = digits.slice(9, 11);
+    return `+7(${p1})-${p2}-${p3}-${p4}`;
+}
+
+function renderUsers(users) {
+    usersTbody.innerHTML = "";
+
+    if (!users.length) {
+        const row = document.createElement("tr");
+        row.innerHTML = `<td colspan="5" class="empty">Пользователи не найдены</td>`;
+        usersTbody.appendChild(row);
+        return;
+    }
+
+    users.forEach((user) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${user.name || "-"}</td>
+            <td>${formatPhoneRu(user.phone)}</td>
+            <td>${user.university || "-"}</td>
+            <td>${user.telegram_id || "-"}</td>
+            <td>${formatDate(user.date)}</td>
+        `;
+        usersTbody.appendChild(row);
+    });
+}
+
+async function parseJsonSafe(response) {
+    try {
+        return await response.json();
+    } catch {
+        return {};
+    }
+}
+
+async function loadUsers() {
+    hideError();
+    metaText.textContent = "Загрузка...";
+    refreshBtn.disabled = true;
+
+    if (!initData) {
+        showError("Откройте админку из Telegram, чтобы передать initData.");
+        metaText.textContent = "Ошибка доступа";
+        refreshBtn.disabled = false;
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/admin/users", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                initData,
+                query: searchInput.value.trim(),
+                university: universityFilter.value
+            }),
+        });
+
+        const result = await parseJsonSafe(response);
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Не удалось загрузить пользователей");
+        }
+
+        renderUsers(result.users || []);
+        metaText.textContent = `Найдено пользователей: ${result.total ?? (result.users || []).length}`;
+    } catch (error) {
+        showError(error.message || "Ошибка соединения");
+        metaText.textContent = "Ошибка загрузки";
+        usersTbody.innerHTML = "";
+    } finally {
+        refreshBtn.disabled = false;
+    }
+}
+
+refreshBtn.addEventListener("click", loadUsers);
+searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+        loadUsers();
+    }
+});
+universityFilter.addEventListener("change", loadUsers);
+
+loadUsers();
+</script>
+</body>
+</html>

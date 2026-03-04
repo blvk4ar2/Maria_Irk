@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Кондитерская Мария</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+    body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        background: linear-gradient(135deg, #ff6b9d, #ffc2d1);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 16px;
+        box-sizing: border-box;
+    }
+
+    .card {
+        background: white;
+        width: 100%;
+        max-width: 420px;
+        padding: 24px;
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    h1 {
+        margin-top: 0;
+        color: #ff3e7f;
+    }
+
+    p {
+        margin-bottom: 0;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 15px;
+        border-radius: 10px;
+        border: 1px solid #eee;
+        background: #f9f9f9;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    button {
+        width: 100%;
+        padding: 12px;
+        border: none;
+        border-radius: 12px;
+        background: #ff3e7f;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+    }
+
+    button:hover:not(:disabled) {
+        opacity: 0.9;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+    .loader {
+        font-size: 16px;
+    }
+
+    .agreement {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        margin-bottom: 15px;
+        text-align: left;
+    }
+
+    .agreement input {
+        margin-top: 3px;
+        width: 18px;
+        height: 18px;
+    }
+
+    .agreement label {
+        line-height: 1.4;
+    }
+
+    .agreement a {
+        color: #c73573;
+        text-decoration: underline;
+        text-decoration-color: rgba(199, 53, 115, 0.5);
+        text-underline-offset: 2px;
+        font-weight: 500;
+    }
+
+    .agreement a:hover,
+    .agreement a:focus-visible {
+        color: #a8295f;
+        text-decoration-color: rgba(168, 41, 95, 0.8);
+    }
+
+    .input-group {
+        text-align: left;
+        margin-bottom: 15px;
+    }
+
+    .error {
+        font-size: 12px;
+        color: #ff3e7f;
+        margin-top: -8px;
+        margin-bottom: 10px;
+        display: none;
+    }
+
+    input.error-border,
+    select.error-border {
+        border: 1px solid #ff3e7f;
+        background: #fff0f5;
+    }
+
+    .server-error {
+        font-size: 13px;
+        color: #b02457;
+        margin-bottom: 12px;
+        display: none;
+    }
+
+    .profile-card {
+        text-align: left;
+        background: #fff5f9;
+        border: 1px solid #ffd6e5;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .discount-note {
+        margin-top: 14px;
+        text-align: left;
+        background: #fff0f6;
+        border: 1px solid #ffc6dd;
+        border-radius: 14px;
+        padding: 12px 14px;
+        color: #7a2549;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .discount-note strong {
+        color: #b0235e;
+    }
+
+    .profile-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid #f4dbe6;
+    }
+
+    .profile-row:last-child {
+        border-bottom: none;
+    }
+
+    .profile-label {
+        color: #8d4a66;
+        font-size: 13px;
+    }
+
+    .profile-value {
+        font-weight: 600;
+        color: #5c1f39;
+        text-align: right;
+        word-break: break-word;
+    }
+
+    .screen-smooth {
+        animation: profileAppear 0.35s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes profileAppear {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<div class="card">
+    <div id="loading">
+        <h1>Кондитерская "Мария" 💗</h1>
+        <p class="loader">Проверяем регистрацию...</p>
+    </div>
+
+    <form id="registerForm" class="hidden">
+        <h1>Регистрация</h1>
+        <div class="server-error" id="serverError"></div>
+
+        <div class="input-group">
+            <input type="text" id="name" placeholder="Ваше имя" autocomplete="name">
+            <div class="error" id="nameError"></div>
+        </div>
+
+        <div class="input-group">
+            <input type="tel" id="phone" placeholder="+7 (___) ___-__-__" autocomplete="tel">
+            <div class="error" id="phoneError"></div>
+        </div>
+
+        <div class="input-group">
+            <select id="university">
+                <option value="">Выберите университет</option>
+                <option value="БГУ">БГУ</option>
+                <option value="ИГУ">ИГУ</option>
+            </select>
+            <div class="error" id="universityError"></div>
+        </div>
+
+        <div class="agreement">
+            <input type="checkbox" id="agreement">
+            <label for="agreement">
+                Я соглашаюсь на обработку персональных данных и подтверждаю, что ознакомился(ась) с
+                <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer">политикой обработки персональных данных</a>.
+            </label>
+        </div>
+        <div class="error" id="agreementError"></div>
+
+        <button type="submit">Зарегистрироваться</button>
+    </form>
+
+    <div id="profileScreen" class="hidden">
+        <h1>Ваш профиль</h1>
+        <div class="profile-card">
+            <div class="profile-row">
+                <div class="profile-label">Имя</div>
+                <div class="profile-value" id="profileName">-</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Телефон</div>
+                <div class="profile-value" id="profilePhone">-</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Университет</div>
+                <div class="profile-value" id="profileUniversity">-</div>
+            </div>
+            <div class="profile-row">
+                <div class="profile-label">Дата регистрации</div>
+                <div class="profile-value" id="profileDate">-</div>
+            </div>
+        </div>
+        <div class="discount-note">
+            <span id="profileDiscountText">Специально для студентов БГУ и ИГУ — скидка</span> <strong id="profileDiscountValue">10</strong>% на всё меню.<br>
+            Просто покажи студенческий при заказе. Зарегистрируйся один раз — скидка активна навсегда.
+        </div>
+    </div>
+</div>
+
+<script>
+const tg = window.Telegram?.WebApp;
+const initData = tg?.initData || "";
+
+if (tg) {
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor("#ff6b9d");
+    tg.setBackgroundColor("#ff6b9d");
+}
+
+const loading = document.getElementById("loading");
+const form = document.getElementById("registerForm");
+const profileScreen = document.getElementById("profileScreen");
+const button = form.querySelector("button");
+const serverError = document.getElementById("serverError");
+
+const nameInput = document.getElementById("name");
+const phoneInput = document.getElementById("phone");
+const universityInput = document.getElementById("university");
+const agreementInput = document.getElementById("agreement");
+
+const profileName = document.getElementById("profileName");
+const profilePhone = document.getElementById("profilePhone");
+const profileUniversity = document.getElementById("profileUniversity");
+const profileDate = document.getElementById("profileDate");
+const profileDiscountText = document.getElementById("profileDiscountText");
+const profileDiscountValue = document.getElementById("profileDiscountValue");
+
+const STUDENT_DISCOUNT_PERCENT = 10;
+
+function setLoadingError(message) {
+    loading.innerHTML = "<p>" + message + "</p>";
+}
+
+function showServerError(message) {
+    serverError.textContent = message;
+    serverError.style.display = "block";
+}
+
+function hideServerError() {
+    serverError.style.display = "none";
+}
+
+function showScreen(screen, smooth = false) {
+    [loading, form, profileScreen].forEach((element) => {
+        element.classList.add("hidden");
+    });
+    screen.classList.remove("screen-smooth");
+    screen.classList.remove("hidden");
+
+    if (smooth) {
+        // Restart animation on repeated openings
+        void screen.offsetWidth;
+        screen.classList.add("screen-smooth");
+    }
+}
+
+function showError(field, message) {
+    const input = document.getElementById(field);
+    const error = document.getElementById(field + "Error");
+
+    input.classList.add("error-border");
+    error.innerText = message;
+    error.style.display = "block";
+}
+
+function clearErrors() {
+    hideServerError();
+
+    document.querySelectorAll(".error").forEach((element) => {
+        element.style.display = "none";
+    });
+
+    document.querySelectorAll("input, select").forEach((element) => {
+        element.classList.remove("error-border");
+    });
+}
+
+async function parseJsonSafe(response) {
+    try {
+        return await response.json();
+    } catch {
+        return {};
+    }
+}
+
+function wait(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatDate(isoValue) {
+    if (!isoValue) return "-";
+    const date = new Date(isoValue);
+    if (Number.isNaN(date.getTime())) return isoValue;
+    return date.toLocaleDateString("ru-RU");
+}
+
+function formatPhoneRu(phoneValue) {
+    const digits = String(phoneValue || "").replace(/\D/g, "");
+    if (!/^7\d{10}$/.test(digits)) {
+        return phoneValue || "-";
+    }
+
+    const p1 = digits.slice(1, 4);
+    const p2 = digits.slice(4, 7);
+    const p3 = digits.slice(7, 9);
+    const p4 = digits.slice(9, 11);
+    return `+7(${p1})-${p2}-${p3}-${p4}`;
+}
+
+function fillProfile(profile) {
+    const university = profile.university || "-";
+
+    profileName.textContent = profile.name || "-";
+    profilePhone.textContent = formatPhoneRu(profile.phone);
+    profileUniversity.textContent = university;
+    profileDate.textContent = formatDate(profile.date);
+    profileDiscountValue.textContent = String(STUDENT_DISCOUNT_PERCENT);
+
+    if (university === "ИГУ") {
+        profileDiscountText.textContent = "Специально для студентов ИГУ — скидка";
+    } else if (university === "БГУ") {
+        profileDiscountText.textContent = "Специально для студентов БГУ — скидка";
+    } else {
+        profileDiscountText.textContent = "Специально для студентов — скидка";
+    }
+}
+
+async function loadProfileAndShow(options = {}) {
+    const smooth = Boolean(options.smooth);
+    const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData }),
+    });
+
+    const result = await parseJsonSafe(response);
+    if (!response.ok || !result.success || !result.profile) {
+        throw new Error(result.message || "Не удалось загрузить профиль");
+    }
+
+    fillProfile(result.profile);
+    showScreen(profileScreen, smooth);
+}
+
+async function checkUser() {
+    const startedAt = Date.now();
+
+    if (!initData) {
+        setLoadingError("Откройте форму из Telegram-бота.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/api/check-user", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ initData }),
+        });
+
+        const result = await parseJsonSafe(response);
+        if (!response.ok) {
+            throw new Error(result.message || "Не удалось проверить регистрацию");
+        }
+
+        const elapsed = Date.now() - startedAt;
+        const minLoadingMs = 2000;
+        if (elapsed < minLoadingMs) {
+            await wait(minLoadingMs - elapsed);
+        }
+
+        if (result.registered) {
+            await loadProfileAndShow();
+            return;
+        }
+
+        showScreen(form);
+    } catch (error) {
+        setLoadingError(error.message || "Ошибка соединения");
+    }
+}
+
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    clearErrors();
+
+    const name = nameInput.value.trim();
+    const phone = phoneInput.value.replace(/\D/g, "");
+    const university = universityInput.value;
+    const agreement = agreementInput.checked;
+
+    let isValid = true;
+
+    const nameRegex = /^(?=.{2,50}$)[A-Za-zА-Яа-яЁё\s-]+$/;
+    if (!nameRegex.test(name)) {
+        showError("name", "Введите имя от 2 символов, только буквы, пробел и дефис");
+        isValid = false;
+    }
+
+    if (!/^7\d{10}$/.test(phone)) {
+        showError("phone", "Введите номер в формате РФ: 11 цифр, начиная с 7");
+        isValid = false;
+    }
+
+    if (!university) {
+        showError("university", "Выберите университет");
+        isValid = false;
+    }
+
+    if (!agreement) {
+        showError("agreement", "Необходимо согласие");
+        isValid = false;
+    }
+
+    if (!isValid) return;
+
+    button.disabled = true;
+    button.innerText = "Отправка...";
+
+    try {
+        const response = await fetch("/api/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                initData,
+                name,
+                phone,
+                university,
+                consentAccepted: agreement
+            }),
+        });
+
+        const result = await parseJsonSafe(response);
+        if (response.status === 409) {
+            await loadProfileAndShow({ smooth: true });
+            return;
+        }
+
+        if (!response.ok || !result.success) {
+            throw new Error(result.message || "Не удалось завершить регистрацию");
+        }
+
+        await loadProfileAndShow({ smooth: true });
+    } catch (error) {
+        showServerError(error.message || "Ошибка соединения");
+        button.disabled = false;
+        button.innerText = "Зарегистрироваться";
+    }
+});
+
+checkUser();
+</script>
+
+</body>
+</html>
