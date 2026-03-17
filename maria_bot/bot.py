@@ -181,7 +181,7 @@ async def on_mariya(message: Message) -> None:
 
 @dp.message(Command("chat"))
 async def on_chat(message: Message) -> None:
-    await message.answer("Задайте вопрос, и мы ответим в этом чате.")
+    await message.answer("Задайте вопрос, и мы ответим в этом чате.(позже)")
 
 
 @dp.message(Command("site"))
