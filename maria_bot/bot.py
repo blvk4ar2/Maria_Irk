@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
-SITE_URL = os.getenv("SITE_URL", "").strip()
+SITE_URL = os.getenv("SITE_URL", "").strip() or "https://www.maria-irk.ru/"
 
 BTN_ASSORTMENT = "Ассортимент"
 BTN_BRANCH = "Найти филиал"
