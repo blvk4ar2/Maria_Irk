@@ -4,7 +4,15 @@ import os
 
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandStart
-from aiogram.types import BotCommand, KeyboardButton, Message, ReplyKeyboardMarkup
+from aiogram.types import (
+    BotCommand,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    KeyboardButton,
+    Message,
+    ReplyKeyboardMarkup,
+    WebAppInfo,
+)
 from dotenv import load_dotenv
 
 
@@ -12,6 +20,7 @@ load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 SITE_URL = os.getenv("SITE_URL", "").strip() or "https://www.maria-irk.ru/"
+WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip().rstrip("/")
 
 BTN_ASSORTMENT = "Ассортимент"
 BTN_BRANCH = "Найти филиал"
@@ -19,6 +28,11 @@ BTN_BONUS = "Бонусы и акции"
 BTN_CHAT = "Задать вопрос"
 BTN_SITE = "Сайт"
 BTN_HELP = "Помощь"
+
+BONUS_TEXT = (
+    "Сейчас у нас действует персональное предлоджение для студентов БГУ и ИГУ.\n"
+    "Присоедениться к программе можно по кнопке ниже:"
+)
 
 START_TEXT = (
     "🎉 Добро пожаловать в чат-бота «Мария»!\n\n"
@@ -62,6 +76,16 @@ def build_main_keyboard() -> ReplyKeyboardMarkup:
     )
 
 
+def build_mini_app_keyboard() -> InlineKeyboardMarkup | None:
+    if not WEBAPP_URL:
+        return None
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Открыть регистрацию", web_app=WebAppInfo(url=WEBAPP_URL))]
+        ]
+    )
+
+
 dp = Dispatcher()
 
 
@@ -82,7 +106,11 @@ async def on_assortment(message: Message) -> None:
 
 @dp.message(Command("bonus"))
 async def on_bonus(message: Message) -> None:
-    await message.answer("Акции и предложения скоро появятся. Следите за обновлениями.")
+    keyboard = build_mini_app_keyboard()
+    if keyboard is None:
+        await message.answer("Ссылка на регистрацию сейчас недоступна.")
+        return
+    await message.answer(BONUS_TEXT, reply_markup=keyboard)
 
 
 @dp.message(Command("mariya"))
