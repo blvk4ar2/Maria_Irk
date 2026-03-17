@@ -39,7 +39,6 @@ START_TEXT = (
     "🎉 Добро пожаловать в чат-бота «Мария»!\n\n"
     "Вот что вы можете здесь делать:\n\n"
     "/start — перезапустить бота\n"
-    "/menu — показать главное меню\n"
     "/assortment — посмотреть наши десерты, цены и новинки\n"
     "/mariya — найти ближайший филиал\n"
     "/bonus — узнать, есть ли персональные акции и бонусы\n"
@@ -52,7 +51,6 @@ START_TEXT = (
 HELP_TEXT = (
     "Список команд:\n\n"
     "/start — перезапустить бота\n"
-    "/menu — показать главное меню\n"
     "/assortment — посмотреть ассортимент\n"
     "/bonus — акции и предложения\n"
     "/mariya — найти ближайший филиал\n"
@@ -155,11 +153,6 @@ async def on_start(message: Message) -> None:
     await message.answer(START_TEXT, reply_markup=build_main_keyboard())
 
 
-@dp.message(Command("menu"))
-async def on_menu(message: Message) -> None:
-    await message.answer("Главное меню:", reply_markup=build_main_keyboard())
-
-
 @dp.message(Command("assortment"))
 async def on_assortment(message: Message) -> None:
     await message.answer("Ассортимент скоро будет здесь. Мы готовим описание и цены.")
@@ -251,7 +244,6 @@ async def on_help_button(message: Message) -> None:
 async def set_bot_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Перезапуск бота"),
-        BotCommand(command="menu", description="Показать главное меню"),
         BotCommand(command="assortment", description="Посмотреть ассортимент"),
         BotCommand(command="bonus", description="Акции и предложения"),
         BotCommand(command="mariya", description="Найти ближайший филиал"),
