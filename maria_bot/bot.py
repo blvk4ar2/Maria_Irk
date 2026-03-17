@@ -6,6 +6,7 @@ from aiogram import Bot, Dispatcher, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import (
     BotCommand,
+    CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     KeyboardButton,
@@ -60,6 +61,35 @@ HELP_TEXT = (
     "/help — список всех команд"
 )
 
+BRANCH_TEXT = (
+    "🍰 Кондитерская «Мария»\n\n"
+    "Мы рады приветствовать вас в наших филиалах! Выберите ваш город, чтобы найти "
+    "ближайшую кондитерскую с нашими вкусными тортами и десертами.\n\n"
+    "📍 Выберите город:"
+)
+
+IRKUTSK_TEXT = (
+    "🏙️ Иркутск\n\n"
+    "📍 Наши филиалы:\n"
+    "1. Ул. Декабрьских Событий, 103\n\n"
+    "2. Ул. Депутатская, 51\n\n"
+    "3. Ул. Баррикад, 153\n\n"
+    "4. Ул. Байкальская, 141\n"
+    "5. Ул. Лермонтова, 81/5\n"
+    "6. Ул. Ядринцева, 90\n"
+    "7. Пр. Маршала Жукова, 11/4\n"
+    "8. Ул. Лермонтова, 343/8\n"
+    "9. Ул. Баумана, 207\n"
+    "10. Юбилейный микрорайон, 56\n"
+    "11. Б-р Рябикова, 96/1"
+)
+
+ANGARSK_TEXT = (
+    "🏙️ Ангарск\n\n"
+    "📍 Наш филиал:\n"
+    "1. 18-й мкр., 19"
+)
+
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is not set in .env")
 
@@ -88,7 +118,26 @@ def build_mini_app_keyboard() -> InlineKeyboardMarkup | None:
 
 def build_site_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="Открыть сайт", url=SITE_URL)]]
+        inline_keyboard=[[InlineKeyboardButton(text="Открыть в браузере", url=SITE_URL)]]
+    )
+
+
+def build_city_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(text="Иркутск", callback_data="city_irkutsk"),
+                InlineKeyboardButton(text="Ангарск", callback_data="city_angarsk"),
+            ]
+        ]
+    )
+
+
+def build_back_to_city_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Выбрать город", callback_data="city_menu")]
+        ]
     )
 
 
@@ -121,7 +170,7 @@ async def on_bonus(message: Message) -> None:
 
 @dp.message(Command("mariya"))
 async def on_mariya(message: Message) -> None:
-    await message.answer("Напишите ваш район или адрес, и мы подскажем ближайший филиал.")
+    await message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
 
 
 @dp.message(Command("chat"))
@@ -131,7 +180,13 @@ async def on_chat(message: Message) -> None:
 
 @dp.message(Command("site"))
 async def on_site(message: Message) -> None:
-    await message.answer("Открыть сайт:", reply_markup=build_site_keyboard())
+    await message.answer(
+        "🍰 Кондитерская «Мария» приветствует вас!\n\n"
+        "У нас вы найдете огромный выбор свежих тортов, десертов и выпечки. "
+        "Каждый день мы готовим для вас только самое вкусное и качественное!\n\n"
+        "Ознакомиться со всем ассортиментом можно на нашем сайте:",
+        reply_markup=build_site_keyboard(),
+    )
 
 
 @dp.message(Command("help"))
@@ -147,6 +202,24 @@ async def on_assortment_button(message: Message) -> None:
 @dp.message(F.text == BTN_BRANCH)
 async def on_branch_button(message: Message) -> None:
     await on_mariya(message)
+
+
+@dp.callback_query(F.data == "city_irkutsk")
+async def on_city_irkutsk(callback: CallbackQuery) -> None:
+    await callback.message.answer(IRKUTSK_TEXT, reply_markup=build_back_to_city_keyboard())
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "city_angarsk")
+async def on_city_angarsk(callback: CallbackQuery) -> None:
+    await callback.message.answer(ANGARSK_TEXT, reply_markup=build_back_to_city_keyboard())
+    await callback.answer()
+
+
+@dp.callback_query(F.data == "city_menu")
+async def on_city_menu(callback: CallbackQuery) -> None:
+    await callback.message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
+    await callback.answer()
 
 
 @dp.message(F.text == BTN_BONUS)
