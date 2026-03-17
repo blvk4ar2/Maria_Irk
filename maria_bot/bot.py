@@ -86,6 +86,12 @@ def build_mini_app_keyboard() -> InlineKeyboardMarkup | None:
     )
 
 
+def build_site_keyboard() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="Открыть сайт", url=SITE_URL)]]
+    )
+
+
 dp = Dispatcher()
 
 
@@ -125,10 +131,7 @@ async def on_chat(message: Message) -> None:
 
 @dp.message(Command("site"))
 async def on_site(message: Message) -> None:
-    if SITE_URL:
-        await message.answer(f"Сайт: {SITE_URL}")
-    else:
-        await message.answer("Ссылка на сайт пока не указана.")
+    await message.answer("Открыть сайт:", reply_markup=build_site_keyboard())
 
 
 @dp.message(Command("help"))
