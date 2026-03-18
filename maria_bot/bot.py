@@ -226,7 +226,7 @@ async def on_chat(message: Message) -> None:
     await answer_and_track(
         message,
         "💬 Вы в режиме поддержки.\n\n"
-        "Напишите ваш вопрос — оператор ответит вам в ближайшее время. "
+        "Опишите ваш вопрос или проблему как можно подробнее — оператор ответит вам в ближайшее время. "
         "Вы можете продолжать пользоваться ботом и командами.\n\n"
         "Чтобы выйти из режима поддержки, используйте /close.",
     )
@@ -237,6 +237,15 @@ async def on_close(message: Message) -> None:
     if message.chat.id in SUPPORT_SESSIONS:
         close_support_session(message.chat.id)
         await answer_and_track(message, "Диалог с поддержкой завершен. Если нужно — напишите /chat.")
+        try:
+            user = message.from_user
+            if user:
+                await message.bot.send_message(
+                    SUPPORT_CHAT_ID,
+                    f"Пользователь завершил диалог: {user.full_name} ({user.id})",
+                )
+        except Exception:
+            pass
     else:
         await answer_and_track(message, "Диалог с поддержкой уже закрыт. Если нужно — напишите /chat.")
 
