@@ -149,39 +149,72 @@ def build_back_to_city_keyboard() -> InlineKeyboardMarkup:
 
 dp = Dispatcher()
 
+BOT_MESSAGES: dict[int, list[int]] = {}
+
+
+def track_message(chat_id: int, message_id: int) -> None:
+    BOT_MESSAGES.setdefault(chat_id, []).append(message_id)
+
+
+async def clear_tracked_messages(bot: Bot, chat_id: int) -> None:
+    message_ids = BOT_MESSAGES.get(chat_id, [])
+    for message_id in reversed(message_ids):
+        try:
+            await bot.delete_message(chat_id, message_id)
+        except Exception:
+            pass
+    BOT_MESSAGES[chat_id] = []
+
+
+async def answer_and_track(message: Message, text: str, **kwargs) -> None:
+    sent = await message.answer(text, **kwargs)
+    track_message(message.chat.id, sent.message_id)
+
+
+async def answer_and_track_callback(callback: CallbackQuery, text: str, **kwargs) -> None:
+    if callback.message is None:
+        return
+    sent = await callback.message.answer(text, **kwargs)
+    track_message(callback.message.chat.id, sent.message_id)
+
 
 @dp.message(CommandStart())
 async def on_start(message: Message) -> None:
-    await message.answer(START_TEXT, reply_markup=build_main_keyboard())
+    await clear_tracked_messages(message.bot, message.chat.id)
+    try:
+        await message.delete()
+    except Exception:
+        pass
+    await answer_and_track(message, START_TEXT, reply_markup=build_main_keyboard())
 
 
 @dp.message(Command("assortment"))
 async def on_assortment(message: Message) -> None:
-    await message.answer("Мы уже готовим подробное описание наших десертов, новинок и цены.\nСовсем скоро вы сможете выбрать любимые сладости прямо в боте 😋")
+    await answer_and_track(message, "Мы уже готовим подробное описание наших десертов, новинок и цены.\nСовсем скоро вы сможете выбрать любимые сладости прямо в боте 😋")
 
 
 @dp.message(Command("bonus"))
 async def on_bonus(message: Message) -> None:
     keyboard = build_mini_app_keyboard()
     if keyboard is None:
-        await message.answer("Ссылка на регистрацию сейчас недоступна.")
+        await answer_and_track(message, "Ссылка на регистрацию сейчас недоступна.")
         return
-    await message.answer(BONUS_TEXT, reply_markup=keyboard)
+    await answer_and_track(message, BONUS_TEXT, reply_markup=keyboard)
 
 
 @dp.message(Command("mariya"))
 async def on_mariya(message: Message) -> None:
-    await message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
+    await answer_and_track(message, BRANCH_TEXT, reply_markup=build_city_keyboard())
 
 
 @dp.message(Command("chat"))
 async def on_chat(message: Message) -> None:
-    await message.answer("💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍")
+    await answer_and_track(message, "💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍")
 
 
 @dp.message(Command("site"))
 async def on_site(message: Message) -> None:
-    await message.answer(
+    await answer_and_track(
         "🍰 Кондитерская «Мария» приветствует вас!\n\n"
         "У нас вы найдете огромный выбор свежих тортов, десертов и выпечки. "
         "Каждый день мы готовим для вас только самое вкусное и качественное😋\n\n"
@@ -192,7 +225,7 @@ async def on_site(message: Message) -> None:
 
 @dp.message(Command("help"))
 async def on_help(message: Message) -> None:
-    await message.answer(HELP_TEXT)
+    await answer_and_track(message, HELP_TEXT)
 
 
 @dp.message(F.text == BTN_ASSORTMENT)
@@ -207,19 +240,27 @@ async def on_branch_button(message: Message) -> None:
 
 @dp.callback_query(F.data == "city_irkutsk")
 async def on_city_irkutsk(callback: CallbackQuery) -> None:
-    await callback.message.answer(IRKUTSK_TEXT, reply_markup=build_back_to_city_keyboard())
+    await answer_and_track_callback(
+        callback,
+        IRKUTSK_TEXT,
+        reply_markup=build_back_to_city_keyboard(),
+    )
     await callback.answer()
 
 
 @dp.callback_query(F.data == "city_angarsk")
 async def on_city_angarsk(callback: CallbackQuery) -> None:
-    await callback.message.answer(ANGARSK_TEXT, reply_markup=build_back_to_city_keyboard())
+    await answer_and_track_callback(
+        callback,
+        ANGARSK_TEXT,
+        reply_markup=build_back_to_city_keyboard(),
+    )
     await callback.answer()
 
 
 @dp.callback_query(F.data == "city_menu")
 async def on_city_menu(callback: CallbackQuery) -> None:
-    await callback.message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
+    await answer_and_track_callback(callback, BRANCH_TEXT, reply_markup=build_city_keyboard())
     await callback.answer()
 
 
