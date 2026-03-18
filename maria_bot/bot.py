@@ -22,6 +22,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("BOT_TOKEN", "").strip()
 SITE_URL = os.getenv("SITE_URL", "").strip() or "https://www.maria-irk.ru/"
 WEBAPP_URL = os.getenv("WEBAPP_URL", "").strip().rstrip("/")
+SUPPORT_CHAT_ID = -1003645778870
 
 BTN_ASSORTMENT = "Ассортимент"
 BTN_BRANCH = "Найти филиал"
@@ -98,6 +99,10 @@ ANGARSK_TEXT = (
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is not set in .env")
+
+SUPPORT_SESSIONS: set[int] = set()
+USER_TO_TOPIC: dict[int, int] = {}
+TOPIC_TO_USER: dict[int, int] = {}
 
 
 def build_main_keyboard() -> ReplyKeyboardMarkup:
@@ -209,7 +214,68 @@ async def on_mariya(message: Message) -> None:
 
 @dp.message(Command("chat"))
 async def on_chat(message: Message) -> None:
-    await answer_and_track(message, "💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍")
+    SUPPORT_SESSIONS.add(message.chat.id)
+    await answer_and_track(
+        message,
+        "💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍",
+    )
+
+
+async def ensure_support_topic(bot: Bot, user: Message) -> int:
+    user_id = user.from_user.id if user.from_user else 0
+    if user_id in USER_TO_TOPIC:
+        return USER_TO_TOPIC[user_id]
+
+    title = f"{user.from_user.full_name} ({user_id})"
+    topic = await bot.create_forum_topic(chat_id=SUPPORT_CHAT_ID, name=title)
+    USER_TO_TOPIC[user_id] = topic.message_thread_id
+    TOPIC_TO_USER[topic.message_thread_id] = user_id
+    return topic.message_thread_id
+
+
+@dp.message(F.chat.id != SUPPORT_CHAT_ID)
+async def on_user_message(message: Message) -> None:
+    if message.chat.id not in SUPPORT_SESSIONS:
+        return
+
+    if message.text and message.text.startswith("/"):
+        return
+
+    try:
+        topic_id = await ensure_support_topic(message.bot, message)
+        header = f"Сообщение от {message.from_user.full_name} ({message.from_user.id})"
+        await message.bot.send_message(
+            SUPPORT_CHAT_ID,
+            header,
+            message_thread_id=topic_id,
+        )
+
+        if message.text:
+            await message.bot.send_message(
+                SUPPORT_CHAT_ID,
+                message.text,
+                message_thread_id=topic_id,
+            )
+        else:
+            await message.copy_to(
+                SUPPORT_CHAT_ID,
+                message_thread_id=topic_id,
+            )
+    except Exception:
+        await message.answer("Не удалось передать сообщение в поддержку. Попробуйте позже.")
+
+
+@dp.message(F.chat.id == SUPPORT_CHAT_ID)
+async def on_support_message(message: Message) -> None:
+    topic_id = message.message_thread_id
+    if not topic_id or topic_id not in TOPIC_TO_USER:
+        return
+
+    user_id = TOPIC_TO_USER[topic_id]
+    if message.text:
+        await message.bot.send_message(user_id, message.text)
+    else:
+        await message.copy_to(user_id)
 
 
 @dp.message(Command("site"))
