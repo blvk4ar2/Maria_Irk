@@ -240,9 +240,11 @@ async def on_close(message: Message) -> None:
         try:
             user = message.from_user
             if user:
+                topic_id = await ensure_support_topic(message.bot, message)
                 await message.bot.send_message(
                     SUPPORT_CHAT_ID,
                     f"Пользователь завершил диалог: {user.full_name} ({user.id})",
+                    message_thread_id=topic_id,
                 )
         except Exception:
             pass
