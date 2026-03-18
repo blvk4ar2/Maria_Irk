@@ -3,6 +3,7 @@ import logging
 import os
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.exceptions import SkipHandler
 from aiogram.filters import Command, CommandStart
 from aiogram.types import (
     BotCommand,
@@ -281,12 +282,12 @@ async def ensure_support_topic(bot: Bot, user: Message) -> int:
 @dp.message(F.chat.id != SUPPORT_CHAT_ID)
 async def on_user_message(message: Message) -> None:
     if message.chat.id not in SUPPORT_SESSIONS:
-        return
+        raise SkipHandler
 
     if message.text and message.text.startswith("/"):
-        return
+        raise SkipHandler
     if message.text and message.text in BUTTON_TEXTS:
-        return
+        raise SkipHandler
 
     try:
         topic_id = await ensure_support_topic(message.bot, message)
