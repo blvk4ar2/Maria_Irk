@@ -30,6 +30,7 @@ BTN_BONUS = "Бонусы и акции"
 BTN_CHAT = "Задать вопрос"
 BTN_SITE = "Сайт"
 BTN_HELP = "Помощь"
+BTN_SUPPORT_CLOSE = "Завершить диалог"
 
 BONUS_TEXT = (
     "🎁 Персональное предложение\n\n"
@@ -54,6 +55,7 @@ START_TEXT = (
 HELP_TEXT = (
     "Список команд:\n\n"
     "/start — перезапустить бота\n"
+    "/close — завершить диалог с поддержкой\n"
     "/assortment — посмотреть ассортимент🍰\n"
     "/bonus — акции и предложения🎁\n"
     "/mariya — найти ближайший филиал📍\n"
@@ -110,6 +112,7 @@ def build_main_keyboard() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text=BTN_ASSORTMENT), KeyboardButton(text=BTN_BRANCH)],
             [KeyboardButton(text=BTN_BONUS), KeyboardButton(text=BTN_CHAT)],
+            [KeyboardButton(text=BTN_SUPPORT_CLOSE)],
             [KeyboardButton(text=BTN_SITE), KeyboardButton(text=BTN_HELP)],
         ],
         resize_keyboard=True,
@@ -171,6 +174,10 @@ async def clear_tracked_messages(bot: Bot, chat_id: int) -> None:
     BOT_MESSAGES[chat_id] = []
 
 
+def close_support_session(chat_id: int) -> None:
+    SUPPORT_SESSIONS.discard(chat_id)
+
+
 async def answer_and_track(message: Message, text: str, **kwargs) -> None:
     sent = await message.answer(text, **kwargs)
     track_message(message.chat.id, sent.message_id)
@@ -185,6 +192,7 @@ async def answer_and_track_callback(callback: CallbackQuery, text: str, **kwargs
 
 @dp.message(CommandStart())
 async def on_start(message: Message) -> None:
+    close_support_session(message.chat.id)
     await clear_tracked_messages(message.bot, message.chat.id)
     try:
         await message.delete()
@@ -217,8 +225,20 @@ async def on_chat(message: Message) -> None:
     SUPPORT_SESSIONS.add(message.chat.id)
     await answer_and_track(
         message,
-        "💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍",
+        "💬 Вы в режиме поддержки.\n\n"
+        "Напишите ваш вопрос — оператор ответит вам в ближайшее время. "
+        "Вы можете продолжать пользоваться ботом и командами.\n\n"
+        "Чтобы выйти из режима поддержки, используйте /close.",
     )
+
+
+@dp.message(Command("close"))
+async def on_close(message: Message) -> None:
+    if message.chat.id in SUPPORT_SESSIONS:
+        close_support_session(message.chat.id)
+        await answer_and_track(message, "Диалог с поддержкой завершен. Если нужно — напишите /chat.")
+    else:
+        await answer_and_track(message, "Диалог с поддержкой уже закрыт. Если нужно — напишите /chat.")
 
 
 async def ensure_support_topic(bot: Bot, user: Message) -> int:
@@ -261,6 +281,12 @@ async def on_user_message(message: Message) -> None:
                 SUPPORT_CHAT_ID,
                 message_thread_id=topic_id,
             )
+
+        await answer_and_track(
+            message,
+            "Спасибо! Мы получили ваш запрос. В ближайшее время с вами свяжутся.\n"
+            "Если нужно выйти из режима поддержки — напишите /close.",
+        )
     except Exception:
         await message.answer("Не удалось передать сообщение в поддержку. Попробуйте позже.")
 
@@ -340,6 +366,11 @@ async def on_chat_button(message: Message) -> None:
     await on_chat(message)
 
 
+@dp.message(F.text == BTN_SUPPORT_CLOSE)
+async def on_support_close_button(message: Message) -> None:
+    await on_close(message)
+
+
 @dp.message(F.text == BTN_SITE)
 async def on_site_button(message: Message) -> None:
     await on_site(message)
@@ -353,6 +384,7 @@ async def on_help_button(message: Message) -> None:
 async def set_bot_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Перезапуск бота"),
+        BotCommand(command="close", description="Завершить диалог с поддержкой"),
         BotCommand(command="assortment", description="Посмотреть ассортимент"),
         BotCommand(command="bonus", description="Акции и предложения"),
         BotCommand(command="mariya", description="Найти ближайший филиал"),
