@@ -201,6 +201,11 @@ async def on_start(message: Message) -> None:
     await answer_and_track(message, START_TEXT, reply_markup=build_main_keyboard())
 
 
+@dp.message(Command("menu"))
+async def on_menu(message: Message) -> None:
+    await answer_and_track(message, "Главное меню:", reply_markup=build_main_keyboard())
+
+
 @dp.message(Command("assortment"))
 async def on_assortment(message: Message) -> None:
     await answer_and_track(message, "Мы уже готовим подробное описание наших десертов, новинок и цены.\nСовсем скоро вы сможете выбрать любимые сладости прямо в боте 😋")
@@ -318,6 +323,7 @@ async def on_support_message(message: Message) -> None:
 @dp.message(Command("site"))
 async def on_site(message: Message) -> None:
     await answer_and_track(
+        message,
         "🍰 Кондитерская «Мария» приветствует вас!\n\n"
         "У нас вы найдете огромный выбор свежих тортов, десертов и выпечки. "
         "Каждый день мы готовим для вас только самое вкусное и качественное😋\n\n"
@@ -396,6 +402,7 @@ async def set_bot_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Перезапуск бота"),
         BotCommand(command="close", description="Завершить диалог с поддержкой"),
+        BotCommand(command="menu", description="Показать главное меню"),
         BotCommand(command="assortment", description="Посмотреть ассортимент"),
         BotCommand(command="bonus", description="Акции и предложения"),
         BotCommand(command="mariya", description="Найти ближайший филиал"),
