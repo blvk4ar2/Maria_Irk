@@ -31,6 +31,15 @@ BTN_CHAT = "Задать вопрос"
 BTN_SITE = "Сайт"
 BTN_HELP = "Помощь"
 BTN_SUPPORT_CLOSE = "Завершить диалог"
+BUTTON_TEXTS = {
+    BTN_ASSORTMENT,
+    BTN_BRANCH,
+    BTN_BONUS,
+    BTN_CHAT,
+    BTN_SITE,
+    BTN_HELP,
+    BTN_SUPPORT_CLOSE,
+}
 
 BONUS_TEXT = (
     "🎁 Персональное предложение\n\n"
@@ -275,6 +284,8 @@ async def on_user_message(message: Message) -> None:
         return
 
     if message.text and message.text.startswith("/"):
+        return
+    if message.text and message.text in BUTTON_TEXTS:
         return
 
     try:
