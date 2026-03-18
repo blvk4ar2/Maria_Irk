@@ -31,83 +31,73 @@ BTN_SITE = "Сайт"
 BTN_HELP = "Помощь"
 
 BONUS_TEXT = (
-    "Сейчас у нас действует персональное предлоджение для студентов БГУ и ИГУ.\n"
-    "Присоедениться к программе можно по кнопке ниже:"
+    "🎁 Персональное предложение\n\n"
+    "Сейчас действует специальная акция для студентов БГУ и ИГУ.\n\n"
+    "Вы можете присоединиться к нашей программе лояльности и получать персональные бонусы и предложения.\n\n"
+    "Нажмите кнопку ниже, чтобы подключиться 👇"
 )
 
 START_TEXT = (
     "🎉 Добро пожаловать в чат-бота «Мария»!\n\n"
-    "Вот что вы можете здесь делать:\n\n"
+    "Здесь вы можете:\n\n"
     "/start — перезапустить бота\n"
-    "/menu — показать главное меню\n"
-    "/assortment — посмотреть наши десерты, цены и новинки\n"
-    "/mariya — найти ближайший филиал\n"
-    "/bonus — узнать, есть ли персональные акции и бонусы\n"
-    "/chat — задать вопрос прямо здесь\n\n"
-    "/site — перейти на сайт\n"
-    "/help — показать этот список ещё раз\n\n"
-    "Если что-то непонятно — просто напишите +...-...-..-.. . Мы рядом 😊"
+    "/assortment — посмотреть наши десерты, цены и новинки 🍰\n"
+    "/mariya — найти ближайший филиал📍\n"
+    "/bonus — узнать о персональных акциях и бонусах 🎁\n"
+    "/chat — задать вопрос прямо здесь💬\n\n"
+    "/site — перейти на наш сайт 🌐\n"
+    "/help — показать список командℹ️\n\n"
+    "Если что-то непонятно — просто напишите нам\n 📞 +...-...-..-..\n Мы всегда рядом и рады помочь 🤍"
 )
 
 HELP_TEXT = (
     "Список команд:\n\n"
     "/start — перезапустить бота\n"
-    "/menu — показать главное меню\n"
-    "/assortment — посмотреть ассортимент\n"
-    "/bonus — акции и предложения\n"
-    "/mariya — найти ближайший филиал\n"
-    "/chat — задать вопрос\n"
-    "/site — перейти на сайт\n"
+    "/assortment — посмотреть ассортимент🍰\n"
+    "/bonus — акции и предложения🎁\n"
+    "/mariya — найти ближайший филиал📍\n"
+    "/chat — задать вопрос💬\n"
+    "/site — перейти на сайт🌐\n"
     "/help — список всех команд"
 )
 
 BRANCH_TEXT = (
     "🍰 Кондитерская «Мария»\n\n"
-    "Мы рады приветствовать вас в наших филиалах! Выберите ваш город, чтобы найти ближайшую кондитерскую с нашими вкусными тортами и десертами.\n\n"
+    "Мы рады приветствовать вас в наших филиалах!\n"
+    "Выберите ваш город, чтобы найти ближайшую кондитерскую с нашими свежими тортами и десертами.\n\n"
     "📍 Выберите город:"
 )
 
 IRKUTSK_TEXT = (
     "🏙️ Иркутск\n\n"
-    "📍 Наши филиалы:\n"
+    "📍 Наши филиалы:\n\n"
     "1. Ул. Декабрьских Событий, 103\n\n"
     "2. Ул. Депутатская, 51\n\n"
     "3. Ул. Баррикад, 153\n\n"
-    "4. Ул. Байкальская, 141\n"
-    "5. Ул. Лермонтова, 81/5\n"
-    "6. Ул. Ядринцева, 90\n"
-    "7. Пр. Маршала Жукова, 11/4\n"
-    "8. Ул. Лермонтова, 343/8\n"
-    "9. Ул. Баумана, 207\n"
-    "10. Юбилейный микрорайон, 56\n"
-    "11. Б-р Рябикова, 96/1"
+    "4. Ул. Байкальская, 141\n\n"
+    "5. Ул. Лермонтова, 81/5\n\n"
+    "6. Ул. Ядринцева, 90\n\n"
+    "7. Пр. Маршала Жукова, 11/4\n\n"
+    "8. Ул. Лермонтова, 343/8\n\n"
+    "9. Ул. Баумана, 207\n\n"
+    "10. Юбилейный микрорайон, 56\n\n"
+    "11. Б-р Рябикова, 96/1\n\n"
+    "🍰 Ждём вас за свежими тортами и десертами!\n"
+    "⏰ Режим работы: ежедневно с 8:00 до 21:00\n"
+    "📞8 (395) 250-40-80"
 )
 
 ANGARSK_TEXT = (
     "🏙️ Ангарск\n\n"
-    "📍 Наш филиал:\n"
-    "1. 18-й мкр., 19"
+    "📍 Наш филиал:\n\n"
+    "1. 18-й мкр., 19\n\n"
+    "🍰 Приходите к нам за свежими тортами и десертами!\n"
+    "⏰ Режим работы: ежедневно с 10:00 до 21:00\n"
+    "📞8 (395) 250-40-80"
 )
 
 if not BOT_TOKEN:
     raise RuntimeError("BOT_TOKEN is not set in .env")
-
-
-BOT_MESSAGES: dict[int, list[int]] = {}
-
-
-def track_message(chat_id: int, message_id: int) -> None:
-    BOT_MESSAGES.setdefault(chat_id, []).append(message_id)
-
-
-async def clear_tracked_messages(bot: Bot, chat_id: int) -> None:
-    message_ids = BOT_MESSAGES.get(chat_id, [])
-    for message_id in reversed(message_ids):
-        try:
-            await bot.delete_message(chat_id, message_id)
-        except Exception:
-            pass
-    BOT_MESSAGES[chat_id] = []
 
 
 def build_main_keyboard() -> ReplyKeyboardMarkup:
@@ -151,74 +141,50 @@ def build_city_keyboard() -> InlineKeyboardMarkup:
 
 def build_back_to_city_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="Выбрать город", callback_data="city_menu")]]
+        inline_keyboard=[
+            [InlineKeyboardButton(text="Назад к выбору города", callback_data="city_menu")]
+        ]
     )
 
 
 dp = Dispatcher()
 
 
-async def answer_and_track(message: Message, text: str, **kwargs) -> None:
-    sent = await message.answer(text, **kwargs)
-    track_message(message.chat.id, sent.message_id)
-
-
-async def answer_and_track_callback(callback: CallbackQuery, text: str, **kwargs) -> None:
-    if callback.message is None:
-        return
-    sent = await callback.message.answer(text, **kwargs)
-    track_message(callback.message.chat.id, sent.message_id)
-
-
 @dp.message(CommandStart())
 async def on_start(message: Message) -> None:
-    await clear_tracked_messages(message.bot, message.chat.id)
-    try:
-        await message.delete()
-    except Exception:
-        pass
-    await answer_and_track(message, START_TEXT, reply_markup=build_main_keyboard())
-
-
-@dp.message(Command("menu"))
-async def on_menu(message: Message) -> None:
-    await answer_and_track(message, "Главное меню:", reply_markup=build_main_keyboard())
+    await message.answer(START_TEXT, reply_markup=build_main_keyboard())
 
 
 @dp.message(Command("assortment"))
 async def on_assortment(message: Message) -> None:
-    await answer_and_track(
-        message,
-        "Ассортимент скоро будет здесь. Мы готовим описание и цены.",
-    )
+    await message.answer("Мы уже готовим подробное описание наших десертов, новинок и цены.\nСовсем скоро вы сможете выбрать любимые сладости прямо в боте 😋")
 
 
 @dp.message(Command("bonus"))
 async def on_bonus(message: Message) -> None:
     keyboard = build_mini_app_keyboard()
     if keyboard is None:
-        await answer_and_track(message, "Ссылка на регистрацию сейчас недоступна.")
+        await message.answer("Ссылка на регистрацию сейчас недоступна.")
         return
-    await answer_and_track(message, BONUS_TEXT, reply_markup=keyboard)
+    await message.answer(BONUS_TEXT, reply_markup=keyboard)
 
 
 @dp.message(Command("mariya"))
 async def on_mariya(message: Message) -> None:
-    await answer_and_track(message, BRANCH_TEXT, reply_markup=build_city_keyboard())
+    await message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
 
 
 @dp.message(Command("chat"))
 async def on_chat(message: Message) -> None:
-    await answer_and_track(message, "Задайте вопрос, и мы ответим в этом чате.")
+    await message.answer("💬 Есть вопрос?\n\n Напишите его здесь, и мы ответим вам прямо в чате.\n Наша команда постарается помочь как можно быстрее 🤍")
 
 
 @dp.message(Command("site"))
 async def on_site(message: Message) -> None:
-    await answer_and_track(
-        message,
+    await message.answer(
         "🍰 Кондитерская «Мария» приветствует вас!\n\n"
         "У нас вы найдете огромный выбор свежих тортов, десертов и выпечки. "
-        "Каждый день мы готовим для вас только самое вкусное и качественное!\n\n"
+        "Каждый день мы готовим для вас только самое вкусное и качественное😋\n\n"
         "Ознакомиться со всем ассортиментом можно на нашем сайте:",
         reply_markup=build_site_keyboard(),
     )
@@ -226,7 +192,7 @@ async def on_site(message: Message) -> None:
 
 @dp.message(Command("help"))
 async def on_help(message: Message) -> None:
-    await answer_and_track(message, HELP_TEXT)
+    await message.answer(HELP_TEXT)
 
 
 @dp.message(F.text == BTN_ASSORTMENT)
@@ -241,27 +207,19 @@ async def on_branch_button(message: Message) -> None:
 
 @dp.callback_query(F.data == "city_irkutsk")
 async def on_city_irkutsk(callback: CallbackQuery) -> None:
-    await answer_and_track_callback(
-        callback,
-        IRKUTSK_TEXT,
-        reply_markup=build_back_to_city_keyboard(),
-    )
+    await callback.message.answer(IRKUTSK_TEXT, reply_markup=build_back_to_city_keyboard())
     await callback.answer()
 
 
 @dp.callback_query(F.data == "city_angarsk")
 async def on_city_angarsk(callback: CallbackQuery) -> None:
-    await answer_and_track_callback(
-        callback,
-        ANGARSK_TEXT,
-        reply_markup=build_back_to_city_keyboard(),
-    )
+    await callback.message.answer(ANGARSK_TEXT, reply_markup=build_back_to_city_keyboard())
     await callback.answer()
 
 
 @dp.callback_query(F.data == "city_menu")
 async def on_city_menu(callback: CallbackQuery) -> None:
-    await answer_and_track_callback(callback, BRANCH_TEXT, reply_markup=build_city_keyboard())
+    await callback.message.answer(BRANCH_TEXT, reply_markup=build_city_keyboard())
     await callback.answer()
 
 
@@ -288,7 +246,6 @@ async def on_help_button(message: Message) -> None:
 async def set_bot_commands(bot: Bot) -> None:
     commands = [
         BotCommand(command="start", description="Перезапуск бота"),
-        BotCommand(command="menu", description="Показать главное меню"),
         BotCommand(command="assortment", description="Посмотреть ассортимент"),
         BotCommand(command="bonus", description="Акции и предложения"),
         BotCommand(command="mariya", description="Найти ближайший филиал"),
